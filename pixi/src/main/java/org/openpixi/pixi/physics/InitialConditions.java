@@ -325,6 +325,8 @@ public class InitialConditions {
 
     	stt.setTimeStep(0.1);
     	stt.setSpeedOfLight(1);
+    	stt.setTMax(1500);
+    	stt.setSpectrumStep(50);
     	stt.setRelativistic(true);
     	/*stt.setSimulationWidth(100);
     	stt.setSimulationHeight(100);*/

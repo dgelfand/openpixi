@@ -320,6 +320,7 @@ public class Simulation {
 		FileWriter pw = new FileWriter(file, true);
 		double kinetic = 0;
 		double kineticTotal = 0;
+		double sumAbsVx = 0;
 		RelativisticVelocity relvelocity = new RelativisticVelocity(1);
 		
 		if(time == 0) {
@@ -340,6 +341,7 @@ public class Simulation {
 			else {kinetic = Math.sqrt(particles.get(i).getMass()*particles.get(i).getMass()*( particles.get(i).getVx() * particles.get(i).getVx() + particles.get(i).getVy()*particles.get(i).getVy() + 1) ); }
 			pw.write(kinetic + "\t");
 			kineticTotal += kinetic;
+			sumAbsVx += Math.abs(particles.get(i).getVx());
 			pw.write(particles.get(i).getEx() + "\t");
 			pw.write(particles.get(i).getEy() + "\t");
 			pw.write(particles.get(i).getBz() + "\t");
@@ -373,6 +375,7 @@ public class Simulation {
 		double SumJy = 0;
 		double fieldEnergy = 0;
 		double GaussLaw = 0;
+		double middleBz = 0;
 		//int NumPoints = grid.getNumCellsX()*grid.getNumCellsY();
 		
 		for (int i = 0; i < grid.getNumCellsX(); i++) {
@@ -384,6 +387,7 @@ public class Simulation {
 				fieldEnergy += ( grid.getCells()[i][j].getBz()*grid.getCells()[i][j].getBz() + grid.getCells()[i][j].getEx()*grid.getCells()[i][j].getEx() + grid.getCells()[i][j].getEy()*grid.getCells()[i][j].getEy())/2;
 				GaussLaw += (grid.getEx((i+1)%grid.getNumCellsX(), j) - grid.getEx(i, j)) / grid.getCellWidth() +
 						(grid.getEy(i, (j+1)%grid.getNumCellsY()) - grid.getEy(i, j)) / grid.getCellHeight() - grid.getRho(i,j)*4*Math.PI;
+				if (i == grid.getNumCellsX()/2) middleBz += grid.getBz(i, j);
 				/*pw.write(grid.getCells()[i][j].getJx() + "\n");
 				pw.write(grid.getCells()[i][j].getJy() + "\n");
 				pw.write(grid.getCells()[i][j].getRho() + "\n");
@@ -400,9 +404,12 @@ public class Simulation {
 		pw.write(SumJx + "\t");
 		pw.write(SumJy + "\t");
 		pw.write(GaussLaw + "\t");
+		pw.write(middleBz + "\t");
+		pw.write(sumAbsVx + "\t");
+		/*
 		pw.write(grid.getEy(grid.getNumCellsX()/2, grid.getNumCellsY()/2) + "\t");
 		pw.write(grid.getBz(grid.getNumCellsX()/2, grid.getNumCellsY()/2) + "\t");
-		
+		*/
 		pw.write("\n");
 		
 		pw.close();
