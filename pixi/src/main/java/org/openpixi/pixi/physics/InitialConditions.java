@@ -201,15 +201,15 @@ public class InitialConditions {
     public static Simulation initPair(double charge, double radius) {
 	Settings stt = new Settings();
 
-	stt.setTimeStep(0.1);
-	stt.setTMax(1000);
+	stt.setTimeStep(0.025);
+	stt.setTMax(3000);
 	stt.setSpeedOfLight(1);
 	stt.setRelativistic(true);
 	/*stt.setSimulationWidth(100);
 	stt.setSimulationHeight(100);*/
-	stt.setGridStep(1);
-	stt.setGridCellsX(100);
-	stt.setGridCellsY(100);
+	stt.setGridStep(10);
+	stt.setGridCellsX(10);
+	stt.setGridCellsY(10);
             stt.setNumOfParticles(2);
 
 	stt.addForce(new ConstantForce());
@@ -220,7 +220,7 @@ public class InitialConditions {
 	for (int k = 0; k < 2; k++) {
 		Particle par = new ParticleFull();
 		par.setX(stt.getSimulationWidth() * 1/9.0*(k+4));
-		par.setY(stt.getSimulationHeight() * 1/2 + stt.getGridStep()*2/4);
+		par.setY(stt.getSimulationHeight() * 1/2 + stt.getGridStep()*0/4);
 		par.setRadius(radius);
 		par.setVx(0);//par.setVx(0.1*(1-2*k));
 		par.setVy(0);
@@ -242,19 +242,84 @@ public class InitialConditions {
 	Simulation simulation = new Simulation(stt);
 	return simulation;
 }
+    
+    public static Simulation initTwoPair(double charge, double radius) {
+    	Settings stt = new Settings();
+
+    	stt.setTimeStep(0.01);
+    	stt.setTMax(3000);
+    	stt.setSpeedOfLight(1);
+    	stt.setRelativistic(true);
+    	/*stt.setSimulationWidth(100);
+    	stt.setSimulationHeight(100);*/
+    	stt.setGridStep(10);
+    	stt.setGridCellsX(20);
+    	stt.setGridCellsY(20);
+                stt.setNumOfParticles(4);
+
+    	stt.addForce(new ConstantForce());
+
+    	stt.setBoundary(GeneralBoundaryType.Periodic);
+                stt.setGridSolver(new SimpleSolver());
+
+    	for (int k = 0; k < 2; k++) {
+    		Particle par = new ParticleFull();
+    		par.setX(stt.getSimulationWidth() * 1/18.0*(k+8.5));
+    		par.setY(stt.getSimulationHeight() * 1/2 + stt.getGridStep()*0/4);
+    		par.setRadius(radius);
+    		par.setVx(0);//par.setVx(0.1*(1-2*k));
+    		par.setVy(0);
+    		par.setMass(1);
+    		par.setCharge(charge*(1-2*k));
+    		if (k == 0) {
+    			par.setColor(Color.red);
+    		} else {
+    			par.setColor(Color.blue);
+    		}
+    		stt.addParticle(par);
+    	}
+    	
+    	for (int k = 0; k < 2; k++) {
+    		Particle par = new ParticleFull();
+    		par.setX(stt.getSimulationWidth() * 1/100.0*(2.5*k+95));
+    		par.setY(stt.getSimulationHeight() * 1/2 + stt.getGridStep()*0/4);
+    		par.setRadius(radius);
+    		par.setVx(0);//par.setVx(0.1*(1-2*k));
+    		par.setVy(0);
+    		par.setMass(1);
+    		par.setCharge(-charge*(1-2*k));
+    		if (k == 0) {
+    			par.setColor(Color.red);
+    		} else {
+    			par.setColor(Color.blue);
+    		}
+    		stt.addParticle(par);
+    	}
+                
+                stt.setPoissonSolver(new PoissonSolverFFTPeriodic());
+                stt.useGrid(true);
+                stt.setInterpolator(new ChargeConservingCIC());
+                //stt.setIterations(1);//Testing purposes!!!
+                //set to charge conserving CIC; already preset in settings
+    	Simulation simulation = new Simulation(stt);
+    	return simulation;
+    }
 
     public static Simulation initTwoStream(double charge, double radius, int numpart) {
 	Settings stt = new Settings();
 	double dnumpart = numpart;
+	Random ranGen = new Random();
 
-	stt.setTimeStep(0.1);
+	stt.setTimeStep(0.025);
+	stt.setSpectrumStep(50);
 	stt.setSpeedOfLight(1);
 	stt.setRelativistic(true);
+	stt.setTMax(500);
 	/*stt.setSimulationWidth(100);
 	stt.setSimulationHeight(100);*/
-	stt.setGridStep(1);
-	stt.setGridCellsX(100);
-	stt.setGridCellsY(100);
+	stt.setGridStep(5);
+	stt.setGridCellsX(20);
+	stt.setGridCellsY(2);
             stt.setNumOfParticles(2*numpart);
 
 	stt.setBoundary(GeneralBoundaryType.Periodic);
@@ -263,11 +328,11 @@ public class InitialConditions {
 	for (int k = 0; k < 2*numpart; k++) {
 		Particle par = new ParticleFull();
 		if(k < numpart) {par.setX(stt.getSimulationWidth() * 1/dnumpart*k);
-		par.setVx(0.1);
+		par.setVx(0.3 + ranGen.nextGaussian()*0.01);
 		par.setColor(Color.red);
 		}
 		else {par.setX(stt.getSimulationWidth() * 1/dnumpart*(k-numpart));
-		par.setVx(-0.1);
+		par.setVx(-0.3 + ranGen.nextGaussian()*0.01);
 		par.setColor(Color.blue);
 		}
 		par.setY(stt.getSimulationHeight() * 1/2 );
