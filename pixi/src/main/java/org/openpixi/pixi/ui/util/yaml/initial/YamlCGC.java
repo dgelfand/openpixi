@@ -16,6 +16,7 @@ public class YamlCGC {
 
 	public ArrayList<YamlMVModel> MVModel = new ArrayList<YamlMVModel>();
 	public ArrayList<YamlMVModelCoherent> MVModelCoherent = new ArrayList<YamlMVModelCoherent>();
+	public ArrayList<YamlMVModelSheets> MVModelSheets = new ArrayList<YamlMVModelSheets>();
 	public ArrayList<YamlNucleusCoherent> NucleusCoherent = new ArrayList<YamlNucleusCoherent>();
 	public ArrayList<YamlNucleus> Nucleus = new ArrayList<YamlNucleus>();
 	public ArrayList<YamlNucleusThick> NucleusThick = new ArrayList<YamlNucleusThick>();
@@ -32,6 +33,12 @@ public class YamlCGC {
 		}
 
 		for (YamlMVModelCoherent init : MVModelCoherent) {
+			CGCInitialCondition ic = init.getInitialCondition();
+			applyOptions(ic);
+			s.addInitialConditions(ic);
+		}
+
+		for (YamlMVModelSheets init : MVModelSheets) {
 			CGCInitialCondition ic = init.getInitialCondition();
 			applyOptions(ic);
 			s.addInitialConditions(ic);
