@@ -2,6 +2,7 @@ package org.openpixi.pixi.physics.initial.CGC;
 
 import org.apache.commons.math3.analysis.function.Gaussian;
 import org.openpixi.pixi.math.AlgebraElement;
+import org.openpixi.pixi.math.GroupElement;
 import org.openpixi.pixi.physics.Simulation;
 import org.openpixi.pixi.physics.util.GridFunctions;
 
@@ -15,9 +16,14 @@ public class MVModelSheets implements IInitialChargeDensity {
 	private AlgebraElement[] rho;
 
 	/**
+	 * Transverse Wilson lines as an array of GroupElements.
+	 */
+	private GroupElement[] V;
+
+	/**
 	 * CGC Poisson solver
 	 */
-	private ICGCPoissonSolver poisson;
+	private LightConePoissonSolverImprovedFull poisson;
 
 	/**
 	 * Direction of movement of the charge density. Values range from 0 to numberOfDimensions-1.
@@ -115,10 +121,19 @@ public class MVModelSheets implements IInitialChargeDensity {
 		int totalCells = s.grid.getTotalNumberOfCells();
 		int numberOfColors = s.getNumberOfColors();
 		int numberOfComponents = (numberOfColors > 1) ? numberOfColors * numberOfColors - 1 : 1;
+		int[] transNumCells = GridFunctions.reduceGridPos(s.grid.getNumCells(), direction);
+		int totalTransCells = GridFunctions.getTotalNumberOfCells(transNumCells);
+		int longitudinalNumCells = s.grid.getNumCells(direction);
 
 		this.rho = new AlgebraElement[totalCells];
 		for (int i = 0; i < s.grid.getTotalNumberOfCells(); i++) {
 			this.rho[i] = s.grid.getElementFactory().algebraZero();
+		}
+		double[] tempRho = new double[s.grid.getTotalNumberOfCells()];
+
+		this.V = new GroupElement[totalTransCells];
+		for (int i = 0; i < totalTransCells; i++) {
+			this.V[i] = s.grid.getElementFactory().groupIdentity();
 		}
 
 		Random rand = new Random();
@@ -126,31 +141,66 @@ public class MVModelSheets implements IInitialChargeDensity {
 			rand.setSeed(seed);
 		}
 
+		poisson.initialize(s);
+
 		// Longitudinal and transverse lattice spacing
 		double aL = s.grid.getLatticeSpacing(direction);
 		double aT = s.grid.getLatticeSpacing((direction + 1) % s.getNumberOfDimensions());
 
-		for (int j = 0; j < numberOfComponents; j++) {
-			double[] tempRho = new double[s.grid.getTotalNumberOfCells()];
+		for (int n = 0; n < numSheets; n++) {
+			for (int j = 0; j < numberOfComponents; j++) {
 
-			// Place random charges on the grid (with coherent longitudinal structure).
-			int[] transNumCells = GridFunctions.reduceGridPos(s.grid.getNumCells(), direction);
-			int totalTransCells = GridFunctions.getTotalNumberOfCells(transNumCells);
-			int longitudinalNumCells = s.grid.getNumCells(direction);
+				// Place random charges on the grid (with coherent longitudinal structure).
+				for (int i = 0; i < totalTransCells; i++) {
+					double charge = rand.nextGaussian() * mu * s.getCouplingConstant() / aT / numSheets;
+					int[] transPos = GridFunctions.getCellPos(i, transNumCells);
+					for (int k = 0; k < longitudinalNumCells; k++) {
+						int[] gridPos = GridFunctions.insertGridPos(transPos, direction, k);
+						int index = s.grid.getCellIndex(gridPos);
+						tempRho[index] = charge;
+					}
+				}
+
+				// Apply hard momentum regulation in Fourier space.
+				tempRho = FourierFunctions.regulateChargeDensityHard(tempRho, s.grid.getNumCells(),
+						ultravioletCutoffTransverse, ultravioletCutoffLongitudinal, infraredCoefficient, direction,
+						aT, aL);
+
+				for (int i = 0; i < s.grid.getTotalNumberOfCells(); i++) {
+					this.rho[i].set(j, tempRho[i]);
+				}
+			}
+
+			poisson.solve(this);
+
+			GroupElement[] wilsonLines = poisson.getV();
+
 			for (int i = 0; i < totalTransCells; i++) {
-				double charge = rand.nextGaussian() * mu * s.getCouplingConstant() / aT;
+				V[i].multAssign(wilsonLines[i]);
+			}
+		}
+
+		AlgebraElement[] phi = new AlgebraElement[totalTransCells];
+		for (int i = 0; i < totalTransCells; i++) {
+			phi[i] = s.grid.getElementFactory().algebraZero();
+		}
+		for (int i = 0; i < totalTransCells; i++) {
+			phi[i].set(V[i].getAlgebraElement());
+		}
+
+		for (int j = 0; j < numberOfComponents; j++) {
+
+			for (int i = 0; i < totalTransCells; i++) {
 				int[] transPos = GridFunctions.getCellPos(i, transNumCells);
 				for (int k = 0; k < longitudinalNumCells; k++) {
 					int[] gridPos = GridFunctions.insertGridPos(transPos, direction, k);
 					int index = s.grid.getCellIndex(gridPos);
-					tempRho[index] = charge;
+					tempRho[index] = phi[i].get(j);
 				}
 			}
 
-			// Apply hard momentum regulation in Fourier space.
-			tempRho = FourierFunctions.regulateChargeDensityHard(tempRho, s.grid.getNumCells(),
-					ultravioletCutoffTransverse, ultravioletCutoffLongitudinal, infraredCoefficient, direction,
-					aT, aL);
+			// Compute charge density from a solution to an inverse Poisson equation.
+			tempRho = FourierFunctions.solveInversePoisson(tempRho, s.grid.getNumCells(), direction, aT);
 
 			// Apply longitudinal profile.
 			Gaussian gauss = new Gaussian(location, longitudinalWidth);
