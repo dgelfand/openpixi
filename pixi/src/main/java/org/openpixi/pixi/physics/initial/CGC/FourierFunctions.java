@@ -172,6 +172,43 @@ public class FourierFunctions {
 	}
 
 	/**
+	 * Applies inversion of the Poisson equation to (one color component of) a 3D color potential.
+	 *
+	 * @param phi		Original color potential
+	 * @param numCells	Grid size
+	 * @param direction	Longitudinal direction
+	 * @return			Charge density
+	 */
+	public static double[] solveInversePoisson(double[] phi, int[] numCells, int direction, double aT) {
+		int totalCells = numCells[0] * numCells[1] * numCells[2];
+		int[] transverseNumCells = GridFunctions.reduceGridPos(numCells, direction);
+
+		DoubleFFTWrapper fft = new DoubleFFTWrapper(numCells);
+		double[] rhoFourier = new double[fft.getFFTArraySize()]; // hardcoded for 3D, I know.
+		for (int i = 0; i < totalCells; i++) {
+			rhoFourier[fft.getFFTArrayIndex(i)] = phi[i];
+		}
+		fft.complexForward(rhoFourier);
+
+		// Apply momentum regulation
+		for (int i = 0; i < totalCells; i++) {
+			int[] gridPos = GridFunctions.getCellPos(i, numCells);
+			int[] transPos = GridFunctions.reduceGridPos(gridPos, direction);
+			int transIndex = GridFunctions.getCellIndex(transPos, transverseNumCells);
+
+			double kTeff2 = computeEffectiveTransverseMomentumSquared(transIndex, transverseNumCells, aT);
+			rhoFourier[fft.getFFTArrayIndex(i)]   *=  kTeff2;
+			rhoFourier[fft.getFFTArrayIndex(i)+1] *=  kTeff2;
+		}
+
+		fft.complexInverse(rhoFourier, true);
+		for (int i = 0; i < totalCells; i++) {
+			phi[i] = rhoFourier[fft.getFFTArrayIndex(i)];
+		}
+		return phi;
+	}
+
+	/**
 	 * Computes the square of the effective transverse momentum on the lattice as used in the Poisson equation.
 	 *
 	 * @param cellIndex		transverse lattice index
