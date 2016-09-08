@@ -28,7 +28,7 @@ public class YamlMVModelSheets {
 	/**
 	 * Number of sheets
 	 */
-	public Integer numSheets;
+	public Integer numberOfSheets;
 
 	/**
 	 * \mu parameter of the MV model. This controls the average charge density squared.
@@ -66,7 +66,7 @@ public class YamlMVModelSheets {
 		}
 		IInitialChargeDensity chargeDensity = new MVModelSheets(direction, orientation, longitudinalLocation,
 				longitudinalWidth, mu, useSeed, randomSeed, ultravioletCutoffTransverse, ultravioletCutoffLongitudinal,
-				infraredCoefficient, numSheets);
+				infraredCoefficient, numberOfSheets);
 
 		CGCInitialCondition initialCondition = new CGCInitialCondition();
 		initialCondition.setInitialChargeDensity(chargeDensity);

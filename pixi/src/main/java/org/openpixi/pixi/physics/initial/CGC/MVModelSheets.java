@@ -23,7 +23,7 @@ public class MVModelSheets implements IInitialChargeDensity {
 	/**
 	 * CGC Poisson solver
 	 */
-	private LightConePoissonSolverImprovedFull poisson;
+	private ICGCPoissonSolver poisson;
 
 	/**
 	 * Direction of movement of the charge density. Values range from 0 to numberOfDimensions-1.
@@ -115,6 +115,7 @@ public class MVModelSheets implements IInitialChargeDensity {
 		this.ultravioletCutoffTransverse = ultravioletCutoffTransverse;
 		this.ultravioletCutoffLongitudinal = ultravioletCutoffLongitudinal;
 		this.infraredCoefficient = infraredCoefficient;
+		this.poisson = new LightConePoissonSolverImprovedFull();
 	}
 
 	public void initialize(Simulation s) {
@@ -209,6 +210,10 @@ public class MVModelSheets implements IInitialChargeDensity {
 				double longPos = pos[direction] * s.grid.getLatticeSpacing(direction);
 				double profile = gauss.value(longPos);
 				tempRho[i] *= profile;
+			}
+
+			for (int i = 0; i < s.grid.getTotalNumberOfCells(); i++) {
+				this.rho[i] = s.grid.getElementFactory().algebraZero();
 			}
 
 			/*
