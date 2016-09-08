@@ -43,8 +43,6 @@ initialConditions:
         numberOfSheets: 4
         infraredCoefficient: 0.2
 
-
-
 # Generated panel code:
 panels:
   dividerLocation: 785
@@ -60,7 +58,7 @@ panels:
         - Energy density
     orientation: 0
     rightPanel:
-      dividerLocation: 386
+      dividerLocation: 387
       leftPanel:
         electricFieldPanel:
           automaticScaling: true
@@ -78,17 +76,28 @@ panels:
           automaticScaling: false
           colorIndex: 0
           directionIndex: 1
-          scaleFactor: 25.0
+          scaleFactor: 1.0
           showCoordinates: x, i, 4
           showFields:
           - E
           - U
   orientation: 1
   rightPanel:
-    energyDensity2DGLPanel:
-      automaticScaling: false
+    energyDensityVoxelGLPanel:
+      automaticScaling: true
+      centerx: 0.0
+      centery: 0.0
+      centerz: 0.0
       data: Energy density
-      scaleFactor: 10000.0
-      showCoordinates: x, y, 16
+      direction: x
+      distanceFactor: 1.0
+      opacity: 1.0
+      phi: -2.3407963267948966
+      scaleFactor: 1.0
+      showSimulationBox: false
+      theta: 1.0953981633974483
+      unequalScaling: false
+      visibilityThreshold: 0.0
+      whiteBackground: false
   windowHeight: 1053
   windowWidth: 1920
