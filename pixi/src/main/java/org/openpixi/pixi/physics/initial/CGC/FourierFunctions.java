@@ -190,6 +190,9 @@ public class FourierFunctions {
 		}
 		fft.complexForward(rhoFourier);
 
+		rhoFourier[0] = 0.0;
+		rhoFourier[1] = 0.0;
+
 		// Apply momentum regulation
 		for (int i = 0; i < totalCells; i++) {
 			int[] gridPos = GridFunctions.getCellPos(i, numCells);
