@@ -4,6 +4,7 @@ import org.apache.commons.math3.analysis.function.Gaussian;
 import org.openpixi.pixi.math.AlgebraElement;
 import org.openpixi.pixi.math.GroupElement;
 import org.openpixi.pixi.physics.Simulation;
+import org.openpixi.pixi.physics.grid.Grid;
 import org.openpixi.pixi.physics.util.GridFunctions;
 
 import java.util.Random;
@@ -142,6 +143,8 @@ public class MVModelSheets implements IInitialChargeDensity {
 			rand.setSeed(seed);
 		}
 
+		Grid gridBackup = new Grid(s.grid);
+
 		poisson.initialize(s);
 
 		// Longitudinal and transverse lattice spacing
@@ -180,6 +183,13 @@ public class MVModelSheets implements IInitialChargeDensity {
 				V[i].multAssign(wilsonLines[i]);
 			}
 		}
+
+		/*
+		s.grid.resetU();
+		s.grid.resetUnext();
+		s.grid.resetE();
+		*/
+		//s.grid.copyValuesFrom(gridBackup);
 
 		AlgebraElement[] phi = new AlgebraElement[totalTransCells];
 		for (int i = 0; i < totalTransCells; i++) {
