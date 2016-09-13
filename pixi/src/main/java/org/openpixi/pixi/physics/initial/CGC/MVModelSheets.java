@@ -221,11 +221,7 @@ public class MVModelSheets implements IInitialChargeDensity {
 				double profile = gauss.value(longPos);
 				tempRho[i] *= profile;
 			}
-
-			for (int i = 0; i < s.grid.getTotalNumberOfCells(); i++) {
-				this.rho[i] = s.grid.getElementFactory().algebraZero();
-			}
-
+			
 			/*
 			 Put everything into rho array, but exclude charges that lie outside of a simulation box centered around the
 			 longitudinal location of the MV model.
