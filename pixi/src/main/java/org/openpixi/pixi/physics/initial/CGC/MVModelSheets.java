@@ -189,7 +189,7 @@ public class MVModelSheets implements IInitialChargeDensity {
 		s.grid.resetUnext();
 		s.grid.resetE();
 		*/
-		//s.grid.copyValuesFrom(gridBackup);
+		s.grid.copyValuesFrom(gridBackup);
 
 		AlgebraElement[] phi = new AlgebraElement[totalTransCells];
 		for (int i = 0; i < totalTransCells; i++) {
